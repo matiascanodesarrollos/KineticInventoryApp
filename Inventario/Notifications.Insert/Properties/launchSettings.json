@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Consumer.InsertProductJob": {
+      "commandName": "Project"
+    },
+    "Docker": {
+      "commandName": "Docker"
+    }
+  }
+}

@@ -1,0 +1,79 @@
+version: '3.4'
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    restart: always
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 30s
+      retries: 3
+    ports:
+      - 5672:5672
+      - 15672:15672
+    volumes:
+      - rabbitmq-lib:/var/lib/rabbitmq/
+      - rabbitmq-log:/var/log/rabbitmq
+  api:
+    image: ${DOCKER_REGISTRY-}api:latest
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    ports:
+      - "5000:80"
+    build:
+      context: .
+      dockerfile: API/Dockerfile
+    volumes:
+      - sqlite:/usr/sqlite/
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+  notifications.insert:
+    image: ${DOCKER_REGISTRY-}insert:latest
+    depends_on:
+        rabbitmq:
+          condition: service_started
+        api:
+          condition: service_started
+    restart: always
+    build:
+      context: .
+      dockerfile: Notifications.Insert/Dockerfile
+    volumes:
+      - sqlite:/usr/sqlite/
+  notifications.update:
+    image: ${DOCKER_REGISTRY-}update:latest
+    depends_on:
+        rabbitmq:
+          condition: service_started
+        api:
+          condition: service_started
+    restart: always
+    build:
+      context: .
+      dockerfile: Notifications.Update/Dockerfile
+    volumes:
+      - sqlite:/usr/sqlite/
+  notifications.delete:
+    image: ${DOCKER_REGISTRY-}delete:latest
+    depends_on:
+        rabbitmq:
+          condition: service_started
+        api:
+          condition: service_started
+    restart: always
+    build:
+      context: .
+      dockerfile: Notifications.Delete/Dockerfile
+    volumes:
+      - sqlite:/usr/sqlite/  
+
+volumes:
+  rabbitmq-lib:
+    driver: local
+  rabbitmq-log:
+    driver: local
+  sqlite:
+    driver: local

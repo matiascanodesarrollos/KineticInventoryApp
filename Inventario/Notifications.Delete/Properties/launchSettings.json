@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Notifications.Delete": {
+      "commandName": "Project"
+    },
+    "Docker": {
+      "commandName": "Docker"
+    }
+  }
+}
